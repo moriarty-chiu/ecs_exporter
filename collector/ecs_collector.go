@@ -33,13 +33,6 @@ type ECSRequest struct {
 	} `json:"metrics"`
 }
 
-func sanitizeLabel(val string) string {
-	if val == "" {
-		return "unknown"
-	}
-	return val
-}
-
 func NewECSCollector(cfg *config.APIConfig, tm *token.TokenManager) *ECSCollector {
 	return &ECSCollector{
 		apiCfg:   cfg,
@@ -164,21 +157,21 @@ func (c *ECSCollector) Collect(ch chan<- prometheus.Metric) {
 				c.descRunning,
 				prometheus.GaugeValue,
 				runningTime,
-				sanitizeLabel(name),
-				sanitizeLabel(vdcLevel2),
-				sanitizeLabel(status),
-				sanitizeLabel(osVersion),
-				sanitizeLabel(flavorName),
-				sanitizeLabel(azone),
-				sanitizeLabel(cluster),
-				sanitizeLabel(project),
+				name,
+				vdcLevel2,
+				status,
+				osVersion,
+				flavorName,
+				azone,
+				cluster,
+				project,
 			)
 
 			ch <- prometheus.MustNewConstMetric(
 				c.descRAM,
 				prometheus.GaugeValue,
 				ramSize,
-				sanitizeLabel(name),
+				name,
 			)
 		}
 
