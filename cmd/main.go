@@ -15,7 +15,7 @@ import (
 
 func main() {
 	// 1. 读取配置
-	config.LoadConfig("../config/config.yaml")
+	config.LoadConfig("config/config.yaml")
 
 	// 2. 初始化日志
 	logger.Init(config.Cfg.Log)

@@ -1,0 +1,2 @@
+time="2025-08-01T13:34:55+08:00" level=info msg="Logger initialized"
+time="2025-08-01T13:34:55+08:00" level=fatal msg="initial token fetch failed: Post \"https://iam.example.com/v3/auth/tokens\": dial tcp: lookup iam.example.com: no such host"

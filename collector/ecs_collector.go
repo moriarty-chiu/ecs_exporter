@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -62,7 +63,10 @@ func (c *ECSCollector) Collect(ch chan<- prometheus.Metric) {
 
 		req.Header.Set("X-Auth-Token", c.tokenMgr.GetToken())
 
-		client := &http.Client{}
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}}
 		resp, err := client.Do(req)
 		if err != nil {
 			logrus.Errorf("api request error: %v", err)
