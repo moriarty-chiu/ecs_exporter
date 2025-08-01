@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -19,6 +20,17 @@ type ECSCollector struct {
 	tokenMgr    *token.TokenManager
 	descRunning *prometheus.Desc
 	descRAM     *prometheus.Desc
+}
+
+type ECSRequest struct {
+	Dimensions []struct {
+		Field string `json:"field"`
+		Index int    `json:"index"`
+	} `json:"dimensions"`
+	Metrics []struct {
+		Field   string `json:"field"`
+		AggType string `json:"aggType"`
+	} `json:"metrics"`
 }
 
 func NewECSCollector(cfg *config.APIConfig, tm *token.TokenManager) *ECSCollector {
@@ -52,10 +64,39 @@ func (c *ECSCollector) Collect(ch chan<- prometheus.Metric) {
 		pageSize = 100
 	}
 
+	body := map[string]interface{}{
+		"dimensions": []map[string]interface{}{
+			{
+				"field": "uuid",
+				"index": 1,
+			},
+			{
+				"field": "name",
+				"index": 2,
+			},
+		},
+		"metrics": []map[string]interface{}{
+			{
+				"field":   "cpusize",
+				"aggType": "sum",
+			},
+			{
+				"field":   "ramsize",
+				"aggType": "avg",
+			},
+		},
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		logrus.Errorf("construct request failed: %v", err)
+		return
+	}
+
 	for {
 		url := fmt.Sprintf("%s?pageNo=%d&pageSize=%d", c.apiCfg.Endpoint, pageNo, pageSize)
 
-		req, err := http.NewRequest("GET", url, nil)
+		req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
 		if err != nil {
 			logrus.Errorf("new request error: %v", err)
 			return
