@@ -116,7 +116,7 @@ func (tm *TokenManager) refreshToken() error {
 		bs, _ := io.ReadAll(resp.Body)
 		return errors.New("token request failed, status: " + resp.Status + ", body: " + string(bs))
 	}
-
+	logrus.Infof("get token: %++v", resp.Body)
 	token := resp.Header.Get("X-Subject-Token")
 	if token == "" {
 		return errors.New("token not found in response header")

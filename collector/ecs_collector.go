@@ -33,6 +33,13 @@ type ECSRequest struct {
 	} `json:"metrics"`
 }
 
+func sanitizeLabel(val string) string {
+	if val == "" {
+		return "unknown"
+	}
+	return val
+}
+
 func NewECSCollector(cfg *config.APIConfig, tm *token.TokenManager) *ECSCollector {
 	return &ECSCollector{
 		apiCfg:   cfg,
@@ -138,7 +145,7 @@ func (c *ECSCollector) Collect(ch chan<- prometheus.Metric) {
 			logrus.Errorf("json unmarshal error: %v", err)
 			return
 		}
-
+		logrus.Infof("dataset: %++v", response)
 		for _, item := range response.Datas {
 			// 取出各字段, 你需要根据实际字段名调整
 			name, _ := item["object.name"].(string)
@@ -157,14 +164,21 @@ func (c *ECSCollector) Collect(ch chan<- prometheus.Metric) {
 				c.descRunning,
 				prometheus.GaugeValue,
 				runningTime,
-				name, vdcLevel2, status, osVersion, flavorName, azone, cluster, project,
+				sanitizeLabel(name),
+				sanitizeLabel(vdcLevel2),
+				sanitizeLabel(status),
+				sanitizeLabel(osVersion),
+				sanitizeLabel(flavorName),
+				sanitizeLabel(azone),
+				sanitizeLabel(cluster),
+				sanitizeLabel(project),
 			)
 
 			ch <- prometheus.MustNewConstMetric(
 				c.descRAM,
 				prometheus.GaugeValue,
 				ramSize,
-				name,
+				sanitizeLabel(name),
 			)
 		}
 
