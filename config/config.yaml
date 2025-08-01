@@ -1,0 +1,17 @@
+log:
+  level: info
+  dir: logs
+  file: ecs_exporter.log
+  max_size: 10
+  max_backups: 5
+  max_age: 7
+  compress: true
+
+api:
+  endpoint: https://api.example.com/resource
+  iam_endpoint: https://iam.example.com
+  domain: your_domain
+  username: your_username
+  password: your_password
+  refresh_token_hours: 3
+  page_size: 100
