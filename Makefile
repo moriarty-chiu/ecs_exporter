@@ -1,5 +1,9 @@
 BINARY_NAME=ecs_exporter
 MAIN_FILE=cmd/main.go
+DOCKER_IMAGE_NAME=ecs-exporter
+VERSION?=latest
+DOCKER_IMAGE=$(DOCKER_IMAGE_NAME):$(VERSION)
+DOCKER_CONTAINER=ecs_exporter
 
 .PHONY: all clear build run stop
 
@@ -24,3 +28,15 @@ stop:
 	else \
 		echo "No PID file found. Is $(BINARY_NAME) running?"; \
 	fi
+
+docker-build:
+	docker build -t $(DOCKER_IMAGE) .
+
+docker-run:
+	docker run -d --name $(DOCKER_CONTAINER) -p 9100:9100 -v $(pwd)/config:/app/config $(DOCKER_IMAGE)
+
+docker-stop:
+	-docker stop $(DOCKER_CONTAINER)
+	-docker rm $(DOCKER_CONTAINER)
+
+docker-restart: docker-stop docker-build docker-run
