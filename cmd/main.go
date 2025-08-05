@@ -30,6 +30,11 @@ func main() {
 	ecsCollector := collector.NewECSCollector(&config.Cfg.API, tm)
 	prometheus.MustRegister(ecsCollector)
 
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+
 	// 5. 启动 HTTP 服务，暴露 /metrics
 	http.Handle("/metrics", promhttp.Handler())
 	logrus.Info("Starting server at :9100")
