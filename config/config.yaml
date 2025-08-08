@@ -1,11 +1,10 @@
 log:
-  level: info
-  dir: logs
-  file: ecs_exporter.log
-  max_size: 10
-  max_backups: 5
-  max_age: 7
-  compress: true
+  level: "info"
+  format: "text"
+  enableFile: true
+  filename: "./logs/ecs_exporter"  # 会生成 logs/ecs_exporter_20231201.log 这样的文件
+  maxSize: 100
+  maxAge: 7
 
 api:
   endpoint: https://api.example.com/resource

@@ -1,11 +1,17 @@
 package main
 
 import (
+	"context"
 	"ecs_exporter/collector"
 	"ecs_exporter/config"
 	"ecs_exporter/logger"
 	"ecs_exporter/token"
 	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -19,6 +25,15 @@ func main() {
 
 	// 2. 初始化日志
 	logger.Init(config.Cfg.Log)
+
+	// 确保日志目录存在
+	if config.Cfg.Log.EnableFile {
+		logDir := filepath.Dir(config.Cfg.Log.Filename)
+		if err := os.MkdirAll(logDir, 0755); err != nil {
+			logrus.Errorf("Failed to create log directory %s: %v", logDir, err)
+		}
+	}
+
 	logrus.Info("Logger initialized")
 
 	// 3. 初始化 Token 管理
@@ -37,8 +52,33 @@ func main() {
 
 	// 5. 启动 HTTP 服务，暴露 /metrics
 	http.Handle("/metrics", promhttp.Handler())
-	logrus.Info("Starting server at :9100")
-	if err := http.ListenAndServe(":9100", nil); err != nil {
-		logrus.Fatalf("server error: %v", err)
+
+	server := &http.Server{
+		Addr: ":9100",
 	}
+
+	// 在 goroutine 中启动服务器
+	go func() {
+		logrus.Info("Starting server at :9100")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logrus.Fatalf("server error: %v", err)
+		}
+	}()
+
+	// 等待中断信号以优雅地关闭服务器
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	logrus.Info("Shutting down server...")
+
+	// 上下文设置超时时间
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// 优雅关闭服务器
+	if err := server.Shutdown(ctx); err != nil {
+		logrus.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	logrus.Info("Server exited")
 }

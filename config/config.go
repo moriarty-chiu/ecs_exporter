@@ -9,12 +9,11 @@ import (
 
 type LogConfig struct {
 	Level      string `yaml:"level"`
-	Dir        string `yaml:"dir"`
-	File       string `yaml:"file"`
-	MaxSize    int    `yaml:"max_size"`
-	MaxBackups int    `yaml:"max_backups"`
-	MaxAge     int    `yaml:"max_age"`
-	Compress   bool   `yaml:"compress"`
+	Format     string `yaml:"format"`
+	EnableFile bool   `yaml:"enableFile"`
+	Filename   string `yaml:"filename"`
+	MaxSize    int    `yaml:"maxSize"`
+	MaxAge     int    `yaml:"maxAge"`
 }
 
 type APIConfig struct {
@@ -54,4 +53,18 @@ func LoadConfig(path string) {
 	}
 
 	Cfg = &cfg
+}
+
+func getDefaultConfig() Config {
+	return Config{
+		Log: LogConfig{
+			Level:      "info",
+			Format:     "text",
+			EnableFile: false,
+			Filename:   "./logs/ecs_exporter",
+			MaxSize:    100, // 100MB
+			MaxAge:     7,   // 7天
+		},
+		// 其他默认配置...
+	}
 }
